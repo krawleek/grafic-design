@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { RichText } from "readcv";
 import "@fontsource-variable/inter";
 import { proxy, useSnapshot } from "valtio";
@@ -50,12 +50,6 @@ function Header() {
   return (
     <nav className="header">
       <div className="header-items">
-        <a className="header-item" aria-label="View CV" href={`https://read.cv/${cv.general.username}`} target="_blank" rel="noreferrer">
-          Layers
-        </a>
-      </div>
-      <h1>{cv.general.displayName}</h1>
-      <div className="header-items">
         <button
           className="header-item"
           onClick={() => {
@@ -68,14 +62,17 @@ function Header() {
         >
           Info
         </button>
+      </div>
+      <h1>{cv.general.displayName}</h1>
+      <div className="header-items">
         <button
           className="header-item"
           onClick={() => {
-            if (isMobile()) {
-              state.showLayers = !state.showLayers;
-            } else {
-              state.hideLayers = !state.hideLayers;
-            }
+            const hideBoth = !(state.hideLayers && state.hideInspector);
+            state.hideLayers = hideBoth;
+            state.hideInspector = hideBoth;
+            state.showLayers = false;
+            state.showInspector = false;
           }}
         >
           Menu
@@ -97,10 +94,6 @@ function Layers() {
 
   return (
     <aside className={`sidebar layers ${showLayers ? "shown" : ""}`}>
-      <section className="sidebar-section">
-        <h2 className="sidebar-title">Layers</h2>
-      </section>
-      <hr className="sidebar-divider" />
       {sections.map((section) => (
         <section className="sidebar-section" key={section.title}>
           <h3 className="sidebar-title">{section.title}</h3>
@@ -126,43 +119,69 @@ function Layers() {
 
 function Canvas() {
   const { selectedItem } = useSnapshot(state);
+  const canvasRef = useRef(null);
+  const contentRef = useRef(null);
+  const [zoom, setZoom] = useState(1);
   const sections = useMemo(
     () => [
-      { name: "Projects", items: cv.projects || [] },
-      { name: "Side Projects", items: cv.sideProjects || [] },
+      ...(cv.projects || []).map((item) => ({ ...item })),
+      ...(cv.sideProjects || []).map((item) => ({ ...item })),
     ],
     []
   );
 
+  function onCanvasWheel(e) {
+    if (!e.metaKey && !e.ctrlKey) {
+      return;
+    }
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const nextZoom = Math.max(0.3, Math.min(3, zoom * (e.deltaY > 0 ? 0.92 : 1.08)));
+    const zoomRatio = nextZoom / zoom;
+    const rect = canvas.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left + canvas.scrollLeft;
+    const offsetY = e.clientY - rect.top + canvas.scrollTop;
+    setZoom(nextZoom);
+
+    requestAnimationFrame(() => {
+      canvas.scrollLeft = offsetX * zoomRatio - (e.clientX - rect.left);
+      canvas.scrollTop = offsetY * zoomRatio - (e.clientY - rect.top);
+    });
+  }
+
   return (
-    <main id="canvas" className="canvas">
-      <div id="canvas-content" className="canvas-content">
-        {sections.map((section) => (
-          <div className="canvas-padding" key={section.name}>
-            <article className="canvas-section" style={{ "--section-tint": "rgb(0, 123, 229)" }}>
-              <h3>{section.name}</h3>
-              {section.items.map((project) => (
-                <div
-                  key={project.id}
-                  id={`project-${project.id}`}
-                  className={`canvas-artboard ${selectedItem?.id === project.id ? "selected" : ""}`}
-                  onClick={() => {
-                    state.selectedItem = project;
-                  }}
-                  style={{ width: 260 }}
-                >
-                  <h4>{project.title}</h4>
-                  {(project.attachments || []).slice(0, 1).map((media) =>
-                    media.type === "video" ? (
-                      <video key={media.url} src={media.url} muted loop controls />
-                    ) : (
-                      <img key={media.url} src={media.url} alt={project.title} loading="lazy" />
-                    )
-                  )}
-                </div>
-              ))}
-            </article>
-          </div>
+    <main id="canvas" className="canvas" ref={canvasRef} onWheel={onCanvasWheel}>
+      <div
+        id="canvas-content"
+        className="canvas-content"
+        ref={contentRef}
+        style={{ transform: `scale(${zoom})`, transformOrigin: "0 0" }}
+      >
+        {sections.map((project) => (
+          <article
+            key={project.id}
+            id={`project-${project.id}`}
+            className={`canvas-section project-frame ${selectedItem?.id === project.id ? "selected" : ""}`}
+            style={{ "--section-tint": "rgb(0, 123, 229)" }}
+            onClick={() => {
+              state.selectedItem = project;
+            }}
+          >
+            <h3>{project.title}</h3>
+            <div className="project-media-list">
+              {(project.attachments || []).map((media, idx) =>
+                media.type === "video" ? (
+                  <video key={`${project.id}-video-${idx}`} src={media.url} muted loop controls />
+                ) : (
+                  <img key={`${project.id}-img-${idx}`} src={media.url} alt={`${project.title} ${idx + 1}`} loading="lazy" />
+                )
+              )}
+            </div>
+          </article>
         ))}
       </div>
     </main>

@@ -119,7 +119,7 @@ body {
   }
 
   .header-item:hover {
-    background: rgba(0,0,0, .5);
+    color: #fff;
   }
 
   h1 {
@@ -189,7 +189,7 @@ img {
     height: 100vh;
   }
   @media (min-width: 640px) {
-    overflow: hidden;
+    overflow: auto;
     position: relative;
     width: 100%;
     height: 100%;
@@ -197,22 +197,25 @@ img {
 }
 
 .canvas-content {
-  position: absolute;
-  min-width: 200vw;
-  min-height: 200vh;
-  padding: 72px 0;
+  position: relative;
+  min-width: max-content;
+  min-height: max-content;
+  padding: 72px 24px;
   user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
   @media (min-width: 640px) {
-    padding: 60px 50px;
+    padding: 60px 36px 120px;
   }
 }
 
 .canvas-section {
   position: relative;
-  display: flex;
-  gap: 50px;
-  height: 400px;
-  padding: 50px 40px;
+  display: block;
+  width: max-content;
+  max-width: none;
+  padding: 40px 20px 20px;
   --canvas-section-bg: color-mix(in srgb, var(--canvas-color) 95%, var(--section-tint, red));
   background: var(--canvas-section-bg);
   --canvas-section-border: 0.5px solid color-mix(in srgb, var(--canvas-color) 30%, var(--section-tint, red));
@@ -236,26 +239,18 @@ img {
   top: 0;
   left: 0;
   transform: translate(0, calc(-100% - 5px));
-  font-size: 1rem;
+  font-size: 12px;
   font-weight: 600;
   user-select: none;
   cursor: default;
 }
 
-.canvas-section h3 {
+.canvas-section h3,
+.canvas-section h4 {
   padding: 3px 5px;
   background: var(--canvas-section-bg);
   border: var(--canvas-section-border);
   border-radius: 4px;
-  &:hover {
-    background: color-mix(in srgb, var(--canvas-color) 80%, var(--section-tint, red));
-  }
-}
-.canvas-artboard h4 {
-  &:hover {
-    color: var(--border-color-selected);
-  }
-  
 }
 
 .canvas-padding {
@@ -263,28 +258,26 @@ img {
   padding: 25px;
 }
 
-.canvas-artboard {
-  position: relative;
-  height: 100%;
-  &.selected::after {
-    content: '';
-    display: block;
-    position: absolute;
-    inset: 0;
-    box-shadow: 0 0 0 1px var(--border-color-selected) inset;
-  }
-  &.hovering::after {
-    content: '';
-    display: block;
-    position: absolute;
-    inset: 0;
-    box-shadow: 0 0 0 2px var(--border-color-selected) inset;
-  }
+.project-frame {
+  cursor: pointer;
 }
 
-.canvas-artboard img, .canvas-artboard video {
-  width: 100%;
-  height: 100%;
+.project-media-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-start;
+  padding-top: 18px;
+}
+
+.project-media-list img,
+.project-media-list video {
+  width: auto;
+  height: 400px;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  display: block;
 }
 
 .resize-handle {
@@ -409,11 +402,13 @@ img {
   min-width: 0;
   gap: 8px;
   user-select: none;
+  color: color-mix(in srgb, var(--color) 78%, var(--border-color-selected));
+  transition: color 0.15s ease-in-out;
   &:hover {
-    box-shadow: 0 0 0 1px var(--border-color-selected) inset;
+    color: var(--border-color-selected);
   }
   &.selected {
-    background: var(--background-color-selected);
+    color: var(--border-color-selected);
     .sidebar-icon {
       opacity: 1;
     }
