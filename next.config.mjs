@@ -5,6 +5,9 @@ const basePath = isGithubActions && repoName ? `/${repoName}` : "";
 
 const nextConfig = {
   output: "export",
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   images: {
     unoptimized: true,
   },

@@ -6,6 +6,8 @@ import "@fontsource-variable/inter";
 import { proxy, useSnapshot } from "valtio";
 import cv from "./cv";
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 const state = proxy({
   selectedItem: null,
   showLayers: false,
@@ -17,6 +19,12 @@ const state = proxy({
 
 function isMobile() {
   return typeof window !== "undefined" && window.innerWidth < 640;
+}
+
+function withBasePath(path) {
+  if (!path) return path;
+  if (/^https?:\/\//.test(path)) return path;
+  return `${BASE_PATH}${path}`;
 }
 
 function App() {
@@ -175,9 +183,14 @@ function Canvas() {
             <div className="project-media-list">
               {(project.attachments || []).map((media, idx) =>
                 media.type === "video" ? (
-                  <video key={`${project.id}-video-${idx}`} src={media.url} muted loop controls />
+                  <video key={`${project.id}-video-${idx}`} src={withBasePath(media.url)} muted loop controls />
                 ) : (
-                  <img key={`${project.id}-img-${idx}`} src={media.url} alt={`${project.title} ${idx + 1}`} loading="lazy" />
+                  <img
+                    key={`${project.id}-img-${idx}`}
+                    src={withBasePath(media.url)}
+                    alt={`${project.title} ${idx + 1}`}
+                    loading="lazy"
+                  />
                 )
               )}
             </div>
