@@ -18,7 +18,7 @@ button {
   --border-color: rgba(0,0,0,.1);
   --border-color-selected: rgb(0, 123, 229);
   --color: #111;
-  --canvas-color: rgb(245,245,245); 
+  --canvas-color: rgb(245,245,245);
   --figma-chrome-color: rgb(44, 44, 44);
   font-size: 11px;
   line-height: 1;
@@ -97,7 +97,7 @@ body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   place-items: center;
-  
+
   @media (max-width: 640px) {
     position: fixed;
     top: 0;
@@ -108,7 +108,7 @@ body {
   .header-items {
     display: flex;
   }
-  
+
   .header-item {
     width: 44px;
     height: 44px;
@@ -119,14 +119,14 @@ body {
   }
 
   .header-item:hover {
-    color: #fff;
+    background: rgba(0,0,0, .5);
   }
 
   h1 {
     font-size: 1.2rem;
     font-weight: normal;
   }
-  
+
 img {
   width: 24px;
   height: 24px;
@@ -180,6 +180,7 @@ img {
 
 .canvas {
   background: var(--canvas-color);
+  overflow: auto;
   @media (max-width: 640px) {
     -webkit-overflow-scrolling: touch;
     overflow: auto;
@@ -189,7 +190,6 @@ img {
     height: 100vh;
   }
   @media (min-width: 640px) {
-    overflow: auto;
     position: relative;
     width: 100%;
     height: 100%;
@@ -197,25 +197,27 @@ img {
 }
 
 .canvas-content {
-  position: relative;
-  min-width: max-content;
-  min-height: max-content;
-  padding: 72px 24px;
-  user-select: none;
   display: flex;
-  flex-direction: column;
-  gap: 48px;
+  align-items: flex-start;
+  gap: 72px;
+  width: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 72px 0;
+  user-select: none;
   @media (min-width: 640px) {
-    padding: 60px 36px 120px;
+    padding: 60px 50px;
   }
 }
 
 .canvas-section {
   position: relative;
-  display: block;
-  width: max-content;
-  max-width: none;
-  padding: 40px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  width: min(560px, calc(100vw - 80px));
+  height: max-content;
+  padding: 50px 40px;
   --canvas-section-bg: color-mix(in srgb, var(--canvas-color) 95%, var(--section-tint, red));
   background: var(--canvas-section-bg);
   --canvas-section-border: 0.5px solid color-mix(in srgb, var(--canvas-color) 30%, var(--section-tint, red));
@@ -225,7 +227,7 @@ img {
   }
   border: var(--canvas-section-border);
   border-radius: 1px;
-  
+
   &.selected {
     box-shadow: 0 0 0 1px var(--border-color-selected) inset;
   }
@@ -239,18 +241,26 @@ img {
   top: 0;
   left: 0;
   transform: translate(0, calc(-100% - 5px));
-  font-size: 12px;
+  font-size: 1rem;
   font-weight: 600;
   user-select: none;
   cursor: default;
 }
 
-.canvas-section h3,
-.canvas-section h4 {
+.canvas-section h3 {
   padding: 3px 5px;
   background: var(--canvas-section-bg);
   border: var(--canvas-section-border);
   border-radius: 4px;
+  &:hover {
+    background: color-mix(in srgb, var(--canvas-color) 80%, var(--section-tint, red));
+  }
+}
+.canvas-artboard h4 {
+  &:hover {
+    color: var(--border-color-selected);
+  }
+
 }
 
 .canvas-padding {
@@ -258,26 +268,31 @@ img {
   padding: 25px;
 }
 
-.project-frame {
-  cursor: pointer;
+.canvas-artboard {
+  position: relative;
+  width: 100%;
+  flex: none;
+  &.selected::after {
+    content: '';
+    display: block;
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 0 0 1px var(--border-color-selected) inset;
+  }
+  &.hovering::after {
+    content: '';
+    display: block;
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 0 0 2px var(--border-color-selected) inset;
+  }
 }
 
-.project-media-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  align-items: flex-start;
-  padding-top: 18px;
-}
-
-.project-media-list img,
-.project-media-list video {
-  width: auto;
-  height: 400px;
-  max-width: none;
-  max-height: none;
-  object-fit: contain;
+.canvas-artboard img, .canvas-artboard video {
+  width: 100%;
+  height: 100%;
   display: block;
+  object-fit: contain;
 }
 
 .resize-handle {
@@ -402,13 +417,11 @@ img {
   min-width: 0;
   gap: 8px;
   user-select: none;
-  color: color-mix(in srgb, var(--color) 78%, var(--border-color-selected));
-  transition: color 0.15s ease-in-out;
   &:hover {
-    color: var(--border-color-selected);
+    box-shadow: 0 0 0 1px var(--border-color-selected) inset;
   }
   &.selected {
-    color: var(--border-color-selected);
+    background: var(--background-color-selected);
     .sidebar-icon {
       opacity: 1;
     }
