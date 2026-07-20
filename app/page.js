@@ -154,6 +154,48 @@ function AdjustableSidebar(props) {
 
 function Canvas() {
   const canvasRef = React.useRef(null);
+  const [zoom, setZoom] = React.useState(1);
+  const zoomRef = React.useRef(1);
+
+  React.useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  React.useEffect(() => {
+    function onTrackpadZoom(event) {
+      if (!event.ctrlKey && !event.metaKey) return;
+
+      event.preventDefault();
+      const canvas = canvasRef.current;
+      if (!canvas || !canvas.contains(event.target)) return;
+
+      const previousZoom = zoomRef.current;
+      const nextZoom = Math.min(3, Math.max(0.25,
+        previousZoom * Math.exp(-event.deltaY * 0.01)
+      ));
+      if (nextZoom === previousZoom) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const pointerX = event.clientX - rect.left;
+      const pointerY = event.clientY - rect.top;
+      const ratio = nextZoom / previousZoom;
+
+      zoomRef.current = nextZoom;
+      setZoom(nextZoom);
+      requestAnimationFrame(() => {
+        canvas.scrollLeft = (canvas.scrollLeft + pointerX) * ratio - pointerX;
+        canvas.scrollTop = (canvas.scrollTop + pointerY) * ratio - pointerY;
+      });
+    }
+
+    document.addEventListener("wheel", onTrackpadZoom, {
+      capture: true,
+      passive: false,
+    });
+    return () => {
+      document.removeEventListener("wheel", onTrackpadZoom, {capture: true});
+    };
+  }, []);
 
   React.useEffect(() => {
     state.scrollTo = (x, y) => {
@@ -170,7 +212,7 @@ function Canvas() {
 
   return (
     <main ref={canvasRef} id="canvas" className="canvas">
-      <div id="canvas-content" className="canvas-content">
+      <div id="canvas-content" className="canvas-content" style={{zoom}}>
         {[...(cv.projects ?? []), ...(cv.sideProjects ?? [])].map((project) => (
           <ProjectFrame key={project.id ?? project.title} project={project} />
         ))}
